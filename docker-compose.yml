@@ -47,7 +47,7 @@ services:
       - be_app_management_network
 
 volumes:
-  postgresrbac:
+  postgresrbac: {}
 
 networks:
   be_app_management_network:
