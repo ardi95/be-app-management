@@ -19,6 +19,10 @@ export class AuthService {
     if (!user)
       throw new ResponseError(400, ['Email or password is incorrect!']);
 
+    if (user?.active === 'Inactive') {
+      throw new ResponseError(400, ['User inactive!']);
+    }
+
     const isPasswordValid = await bcrypt.compare(req.password, user.password);
 
     if (!isPasswordValid)

@@ -1,13 +1,14 @@
 import dotenv from 'dotenv';
-import { AccessTokenTable, AuthLogic, UserTable } from './test-util';
+import { AccessTokenTable, AuthLogic, UserTable } from '../test-util';
 import supertest from 'supertest';
-import { web } from '../src/config/web';
-import { logger } from '../src/config/logging';
+import { web } from '../../src/config/web';
+import { logger } from '../../src/config/logging';
 
 dotenv.config();
 
 let cookies: string | string[];
 let refresh_token: string | null;
+let cookieHeaderTemp: string | null;
 
 describe('Service Auth', () => {
   beforeAll(async () => {
@@ -54,7 +55,7 @@ describe('Service Auth', () => {
       );
 
       const response2 = await supertest(web).post('/api/login').send({
-        email: 'admin@arzhi.com',
+        email: process.env.EMAIL_ADMIN,
         password: 'test123',
       });
 
@@ -114,6 +115,52 @@ describe('Service Auth', () => {
         .set('Cookie', cookieHeader);
 
       logger.debug('Logger profile', response.body);
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe('Service Edit Profile', () => {
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeaderTemp = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('Should be error if the name is not filled in', async () => {
+      const response = await supertest(web)
+        .patch('/api/edit-profile')
+        .set('Cookie', cookieHeaderTemp ?? '');
+
+      logger.debug(
+        'Logger Should be error if the name is not filled in',
+        response.body
+      );
+      expect(response.body.errors).toEqual(
+        expect.arrayContaining([
+          'The name is required!',
+          'The gender is required!',
+          'The birthdate is required!',
+        ])
+      );
+      expect(response.status).toBe(400);
+    });
+
+    it('Success to edit data profile', async () => {
+      const response = await supertest(web)
+        .patch('/api/edit-profile')
+        .send({
+          name: 'admin2',
+          gender: 'Male',
+          birthdate: '1995-04-01',
+        })
+        .set('Cookie', cookieHeaderTemp ?? '');
+
+      logger.debug('Logger Success to edit data profile', response.body);
+      expect(response.body.data.name).toBe('admin2');
       expect(response.status).toBe(200);
     });
   });

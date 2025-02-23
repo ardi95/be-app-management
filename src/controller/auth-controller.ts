@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from 'express';
 import { AuthService } from '../service/auth-service';
 import { AccessTokenService } from '../service/accessToken-service';
 import { prismaClient } from '../config/database';
+import { UserService } from '../service/user-service';
+import { ResponseError } from '../config/response-error';
 
 export class AuthController {
   static async login(req: Request, res: Response, next: NextFunction) {
@@ -69,10 +71,36 @@ export class AuthController {
     }
   }
 
+  static async editProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
+      const dataUpdate = {
+        ...req.body,
+        email: req.user.email
+      }
+
+      const data = await UserService.update(
+        req.user.id,
+        dataUpdate,
+        req.user
+      );
+
+      res.status(200).json({
+        message: 'Success to edit data user.',
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
   static async logout(req: Request, res: Response, next: NextFunction) {
     try {
       const token = req.cookies.token;
-      await AccessTokenService.destroyByToken(prismaClient, token)
+      await AccessTokenService.destroyByToken(prismaClient, token);
 
       res.clearCookie('token');
       res.status(200).json({ message: 'Logout successful' });

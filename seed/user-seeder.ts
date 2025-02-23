@@ -1,16 +1,17 @@
 import { prismaClient } from '../src/config/database';
 import bcrypt from 'bcrypt';
 
-const pass = process.env.PASS_ADMIN || 'admin123';
+const emailAdmin = process.env.EMAIL_ADMIN || 'admin@gmail.com';
+const passAdmin = process.env.PASS_ADMIN || 'admin123';
 
 async function main() {
-  const hashedPassword = await bcrypt.hash(pass, 10);
+  const hashedPassword = await bcrypt.hash(passAdmin, 10);
 
   // Contoh seeder untuk menambahkan beberapa user
   await prismaClient.user.create({
     data: {
       name: 'Admin',
-      email: 'admin@arzhi.com',
+      email: emailAdmin,
       password: hashedPassword,
       gender: 'Male',
       birthdate: new Date('2001-01-01'),

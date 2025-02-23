@@ -18,11 +18,23 @@ const baseSchema = z.object({
     .min(1, `Password is required`),
 });
 
+const editProfileSchema = z.object({
+  name: z
+    .string({ message: `The name is required!` })
+    .min(1, `The name is required!`),
+  gender: z
+    .string({ message: `The gender is required!` })
+    .min(1, `The gender is required!`),
+  birthdate: z
+    .string({ message: `The birthdate is required!` })
+    .date(`The birthdate format must be: YYYY-MM-DD!`)
+});
+
 export const generateToken = (user: IUserObject) => {
   const { password, ...userWithoutPassword } = user;
 
   return jwt.sign(userWithoutPassword, secret, {
-    expiresIn: '1m',
+    expiresIn: '15m',
   });
 };
 
@@ -53,9 +65,9 @@ export const verifyToken = async (
   }
 
   try {
-    const decoded = jwt.verify(token, secret) as string | JwtPayload;
+    const decoded = jwt.verify(token, secret) as IUserObject;
 
-    req.user = decoded; // Properti ini sekarang diakui oleh TypeScript
+    req.user = decoded;
     next();
   } catch (error) {
     return next(new ResponseError(401, ['Invalid Token']));
@@ -75,3 +87,17 @@ export const validateLogin = async (
     next(e);
   }
 };
+
+export const validateEditProfile = async(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await editProfileSchema.parse(req.body);
+
+    next();
+  } catch (e) {
+    next(e);
+  }
+}

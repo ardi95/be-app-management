@@ -13,8 +13,9 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DATABASE_URL=${DATABASE_URL_DOCKER}
       - SECRET_JWT=${SECRET_JWT}
+      - EMAIL_ADMIN=${EMAIL_ADMIN}
       - PASS_ADMIN=${PASS_ADMIN}
       - PORT=3000
     networks:

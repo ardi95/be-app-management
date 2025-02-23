@@ -17,9 +17,9 @@ model User {
   photo      String?
   active     String   @default("No Active")
   created_by Int?
-  created_at DateTime @default(now())
+  created_at DateTime @default(now()) @db.Timestamptz
   updated_by Int?
-  updated_at DateTime @updatedAt
+  updated_at DateTime @updatedAt @db.Timestamptz
 
   @@map("users")
 }
@@ -29,8 +29,8 @@ model AccessToken {
   user_id       Int
   token         String
   refresh_token String   @unique @db.VarChar(255)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @updatedAt @db.Timestamptz
 
   @@map("access_tokens")
 }

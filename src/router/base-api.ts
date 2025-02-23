@@ -1,6 +1,7 @@
 import express from 'express';
 import { AuthController } from '../controller/auth-controller';
-import { validateLogin, verifyToken } from '../validation/auth-validation';
+import { validateEditProfile, validateLogin, verifyToken } from '../validation/auth-validation';
+import { appManagementRouter } from './app-management-api';
 
 export const baseRouter = express.Router();
 
@@ -8,4 +9,7 @@ export const baseRouter = express.Router();
 baseRouter.post('/login', validateLogin, AuthController.login);
 baseRouter.post('/refresh-token', AuthController.refreshToken);
 baseRouter.get('/profile', verifyToken, AuthController.profile);
+baseRouter.patch('/edit-profile', verifyToken, validateEditProfile, AuthController.editProfile);
 baseRouter.post('/logout', verifyToken, AuthController.logout);
+
+baseRouter.use('/app-management', verifyToken, appManagementRouter)

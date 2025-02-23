@@ -1,10 +1,14 @@
 import { ILoginRequest } from "./auth-model";
 
-export interface IUserObject extends ILoginRequest {
-  id: number;
+export interface IRequestUser {
   name: string;
+  email: string;
   gender: string;
   birthdate: Date;
+}
+
+export interface IUserObject extends ILoginRequest, Pick<IRequestUser, "name" | "gender" | "birthdate"> {
+  id: number;
   photo?: string | null;
   active: string;
   created_by?: number | null;

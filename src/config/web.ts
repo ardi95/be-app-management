@@ -3,6 +3,7 @@ import { mainRouter } from '../router/main-api';
 import { errorMiddleware } from '../middleware/error-middleware';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+import limiter from '../middleware/ratelimiter-middleware';
 
 dotenv.config();
 export const web = express();
@@ -27,5 +28,6 @@ web.use((req, res, next) => {
 
 })
 
+web.use(limiter);
 web.use(mainRouter);
 web.use(errorMiddleware);

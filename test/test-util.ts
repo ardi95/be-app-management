@@ -9,7 +9,7 @@ dotenv.config();
 export class AuthLogic {
   static async getLoginSuperAdmin() {
     const response = await supertest(web).post('/api/login').send({
-      email: 'admin@arzhi.com',
+      email: process.env.EMAIL_ADMIN,
       password: process.env.PASS_ADMIN,
     });
 
