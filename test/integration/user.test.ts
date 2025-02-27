@@ -143,6 +143,42 @@ describe('Service User', () => {
     });
   });
 
+  describe('Service Detail', () => {
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('Should be error because the user does not exist', async () => {
+      const response = await supertest(web)
+        .get(`${baseUrlTest}/3`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        'Logger Should be error because the user does not exist',
+        response.body
+      );
+      expect(response.status).toBe(404);
+    })
+
+    it('Success to get detail user', async () => {
+      const response = await supertest(web)
+        .get(`${baseUrlTest}/2`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        'Logger Success get detail user',
+        response.body
+      );
+      expect(response.status).toBe(200);
+    })
+  })
+
   describe('Service update', () => {
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();

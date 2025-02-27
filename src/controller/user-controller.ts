@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { UserService } from '../service/user-service';
 import { ResponseError } from '../config/response-error';
+import { prismaClient } from '../config/database';
 
 export class UserController {
   static async index(req: Request, res: Response, next: NextFunction) {
@@ -14,6 +15,22 @@ export class UserController {
       res.status(200).json({
         ...data,
         page: parseInt(req.query.page as string) || 1
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async detail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await UserService.detail(prismaClient, parseInt(req.params.id))
+
+      if (!data) {
+        return next(new ResponseError(404, ['The user does not exist!']));
+      }
+      
+      res.status(200).json({
+        data
       });
     } catch (e) {
       next(e);
