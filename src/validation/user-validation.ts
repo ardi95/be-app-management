@@ -17,7 +17,10 @@ const baseSchema = z.object({
     .min(1, `The gender is required!`),
   birthdate: z
     .string({ message: `The birthdate is required!` })
-    .date(`The birthdate format must be: YYYY-MM-DD!`)
+    .date(`The birthdate format must be: YYYY-MM-DD!`),
+  role_id: z
+    .number({ message: `The role is required!` })
+    .min(1, `The role is required!`),
     // .min(1, `The birthdate is required!`)
     // .regex(/^\d{4}-\d{2}-\d{2}$/, 'The birthdate format must be: YYYY-MM-DD!'),
 });

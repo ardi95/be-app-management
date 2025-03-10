@@ -5,12 +5,13 @@ export interface IRequestUser {
   email: string;
   gender: string;
   birthdate: Date;
+  role_id: number;
 }
 
 export interface IUserObject extends ILoginRequest, Pick<IRequestUser, "name" | "gender" | "birthdate"> {
   id: number;
   photo?: string | null;
-  active: string;
+  active: 'Active' | 'Inactive';
   created_by?: number | null;
   created_at: Date;
   updated_by?: number | null;

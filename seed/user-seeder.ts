@@ -5,6 +5,15 @@ const emailAdmin = process.env.EMAIL_ADMIN || 'admin@gmail.com';
 const passAdmin = process.env.PASS_ADMIN || 'admin123';
 
 async function main() {
+  // role
+  const roleAdmin = await prismaClient.role.create({
+    data: {
+      name: 'Super Admin',
+      created_by: 0
+    }
+  })
+
+  // User
   const hashedPassword = await bcrypt.hash(passAdmin, 10);
 
   // Contoh seeder untuk menambahkan beberapa user
@@ -16,6 +25,7 @@ async function main() {
       gender: 'Male',
       birthdate: new Date('2001-01-01'),
       active: 'Active',
+      role_id: roleAdmin.id,
       created_by: 0
     },
   });

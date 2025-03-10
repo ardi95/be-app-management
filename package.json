@@ -9,8 +9,11 @@
     "build": "tsc",
     "start": "nodemon dist/main.js",
     "dev": "ts-node-dev --files src/main.ts",
-    "seed:user": "ts-node seed/user-seeder.ts",
-    "migrate:test": "dotenv -e .env.test npx prisma migrate dev"
+    "migrate": "prisma migrate dev",
+    "migrate:test": "dotenv -e .env.test npx prisma migrate dev",
+    "reset:db": "prisma migrate reset",
+    "reset:dbtest": "dotenv -e .env.test npx prisma migrate reset",
+    "seed:user": "ts-node seed/user-seeder.ts"
   },
   "jest": {
     "transform": {

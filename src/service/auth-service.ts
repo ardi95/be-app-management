@@ -19,7 +19,7 @@ export class AuthService {
     if (!user)
       throw new ResponseError(400, ['Email or password is incorrect!']);
 
-    if (user?.active === 'Inactive') {
+    if (user?.active !== 'Active') {
       throw new ResponseError(400, ['User inactive!']);
     }
 
@@ -28,7 +28,12 @@ export class AuthService {
     if (!isPasswordValid)
       throw new ResponseError(400, ['Email or password is incorrect!']);
 
-    const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, user);
+    const formattedUser: IUserObject = {
+      ...user,
+      active: user.active === 'Active' ? 'Active' : 'Inactive', // Konversi manual
+    };
+
+    const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, formattedUser);
 
     return { token, refresh_token, user };
   }
@@ -56,7 +61,12 @@ export class AuthService {
 
     return prismaClient.$transaction(async (prisma) => {
 
-      const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, user);
+      const formattedUser: IUserObject = {
+        ...user,
+        active: user.active === 'Active' ? 'Active' : 'Inactive', // Konversi manual
+      };
+
+      const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, formattedUser);
 
       await AccessTokenService.destroy(prisma, refreshToken)
 

@@ -3,6 +3,7 @@ import { prismaClient } from '../config/database';
 import { IRequestUser, IUserObject } from '../model/user-model';
 import bcrypt from 'bcrypt';
 import { IRequestList } from '../model/global-model';
+import { pagination } from '../helper/pagination-helper';
 
 const emailAdmin = process.env.EMAIL_ADMIN || 'admin@gmail.com';
 const passAdmin = process.env.PASS_ADMIN || 'admin123';
@@ -43,13 +44,7 @@ export class UserService {
      * pembuatan paging
      */
 
-    let per_page = 10;
-    let page = 1;
-    if (req.per_page) per_page = req.per_page;
-    if (req.page) page = req.page;
-
-    const take = Number(per_page);
-    const skip = (Number(page) - 1) * take;
+    const { take, skip } = pagination(req);
 
     const users = await prismaClient.user.findMany({
       where,
@@ -101,6 +96,7 @@ export class UserService {
         birthdate: new Date(req.birthdate), // Konversi ke Date
         password: hashedPassword,
         active: 'Active',
+        role_id: req.role_id,
         created_by: req.user?.id || 0, // Ambil user ID, jika tidak ada set default 0
       },
     });
@@ -126,6 +122,18 @@ export class UserService {
       where: { id },
       data: {
         active: 'Inactive',
+        updated_by: id
+      },
+    });
+
+    return data;
+  }
+
+  static async takeOut(id: number) {
+    const data = await prismaClient.user.update({
+      where: { id },
+      data: {
+        active: 'Take Out',
         updated_by: id
       },
     });

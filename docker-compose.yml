@@ -7,9 +7,8 @@ services:
     build: .
     expose:
       - "3000"
-    # volumes:
-    #   - .:/usr/src/app
-    #   - /usr/src/app/node_modules
+    volumes:
+      - ./src:/usr/src/app/src
     depends_on:
       - db
     environment:

@@ -82,4 +82,16 @@ export class UserController {
       next(e);
     }
   }
+
+  static async takeOut(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = await UserService.takeOut(parseInt(req.params.id));
+      res.status(200).json({
+        message: 'Success to reset password user.',
+        data
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }

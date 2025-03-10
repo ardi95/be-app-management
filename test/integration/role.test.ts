@@ -3,15 +3,15 @@ import { AccessTokenTable, AuthLogic, UserTable } from '../test-util';
 import supertest from 'supertest';
 import { web } from '../../src/config/web';
 import { logger } from '../../src/config/logging';
-dotenv.config();
 
-const baseUrlTest = '/api/app-management/user';
+dotenv.config();
+const baseUrlTest = '/api/app-management/role';
 
 let cookies: string | string[];
 let refresh_token: string | null;
 let cookieHeader: string | null;
 
-describe('Service User', () => {
+describe('Service Role', () => {
   beforeAll(async () => {
     await UserTable.delete();
     await AccessTokenTable.delete();
@@ -45,73 +45,40 @@ describe('Service User', () => {
         'Logger Should error if the name is not filled in',
         response.body
       );
+
       expect(response.body.errors).toEqual(
-        expect.arrayContaining([
-          'The email is required!',
-          'The name is required!',
-          'The gender is required!',
-          'The birthdate is required!',
-        ])
+        expect.arrayContaining(['The name is required!'])
       );
       expect(response.status).toBe(400);
     });
 
-    it('Should be error if the date of birth format is incorrect', async () => {
+    it('Success to add role', async () => {
       const response = await supertest(web)
         .post(baseUrlTest)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          email: 'test@gmail.com',
-          name: 'test',
-          gender: 'Male',
-          birthdate: '24-04-1995',
-          role_id: 1
+          name: 'Staff',
         });
 
-      logger.debug(
-        'Logger Should be error if the date of birth format is incorrect',
-        response.body
-      );
-      expect(response.body.errors).toEqual(
-        expect.arrayContaining(['The birthdate format must be: YYYY-MM-DD!'])
-      );
-      expect(response.status).toBe(400);
-    });
+      logger.debug('Logger Success to add role', response.body);
 
-    it('Success to add user', async () => {
-      const response = await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          email: 'test@gmail.com',
-          name: 'test',
-          gender: 'Male',
-          birthdate: '1995-04-24',
-          role_id: 1
-        });
-
-      logger.debug('Logger Success to add user', response.body);
       expect(response.status).toBe(200);
     });
 
-    it('Should be error because the email must be unique', async () => {
+    it('Should be error because the name must be unique', async () => {
       const response = await supertest(web)
         .post(baseUrlTest)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          email: 'test@gmail.com',
-          name: 'test',
-          gender: 'Male',
-          birthdate: '1995-04-24',
-          role_id: 1
+          name: 'Staff',
         });
 
       logger.debug(
-        'Logger Should be error because the email must be unique',
+        'Logger Should be error because the name must be unique',
         response.body
       );
       expect(response.body.errors).toEqual(
-        expect.arrayContaining(['The email cannot be the same!'])
+        expect.arrayContaining(['The name cannot be the same!'])
       );
       expect(response.status).toBe(400);
     });
@@ -128,7 +95,7 @@ describe('Service User', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('Success to get list user', async () => {
+    it('Success to get list role', async () => {
       const response = await supertest(web)
         .get(baseUrlTest)
         .query({
@@ -141,7 +108,7 @@ describe('Service User', () => {
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success to get list user', response.body);
-      expect(response.body.data[0].name).toBe('Admin');
+      expect(response.body.data[0].name).toBe('Super Admin');
       expect(response.status).toBe(200);
     });
   });
@@ -157,29 +124,29 @@ describe('Service User', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('Should be error because the user does not exist', async () => {
+    it('Should be error because the role does not exist', async () => {
       const response = await supertest(web)
         .get(`${baseUrlTest}/3`)
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug(
-        'Logger Should be error because the user does not exist',
+        'Logger Should be error because the role does not exist',
         response.body
       );
       expect(response.status).toBe(404);
     });
 
-    it('Success to get detail user', async () => {
+    it('Success to get detail role', async () => {
       const response = await supertest(web)
         .get(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '');
 
-      logger.debug('Logger Success get detail user', response.body);
+      logger.debug('Logger Success get detail role', response.body);
       expect(response.status).toBe(200);
     });
   });
 
-  describe('Service update', () => {
+  describe('Service Update', () => {
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -190,66 +157,67 @@ describe('Service User', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('Should be error because the user does not exist', async () => {
+    it('Should be error because the role does not exist', async () => {
       const response = await supertest(web)
         .patch(`${baseUrlTest}/3`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          email: 'test@gmail.com',
           name: 'test',
-          gender: 'Male',
-          birthdate: '1995-04-24',
-          role_id: 1
         });
 
       logger.debug(
-        'Logger Should be error because the user does not exist',
+        'Logger Should be error because the role does not exist',
         response.body
       );
       expect(response.status).toBe(404);
     });
 
-    it('Should be error because the email must be unique', async () => {
+    it('Should be error because the name role must be unique', async () => {
       const response = await supertest(web)
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          email: process.env.EMAIL_ADMIN,
-          name: 'test',
-          gender: 'Male',
-          birthdate: '1995-04-24',
-          role_id: 1
+          name: 'Super Admin',
         });
 
       logger.debug(
-        'Logger Should be error because the email must be unique',
+        'Logger Should be error because the name role must be unique',
         response.body
       );
       expect(response.body.errors).toEqual(
-        expect.arrayContaining(['The email cannot be the same!'])
+        expect.arrayContaining(['The name cannot be the same!'])
       );
       expect(response.status).toBe(400);
     });
 
-    it('Success to edit data user', async () => {
+    it('Success to edit data role with name same and id same', async () => {
       const response = await supertest(web)
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          email: 'test@gmail.com',
-          name: 'test2',
-          gender: 'Male',
-          birthdate: '1995-04-24',
-          role_id: 1
+          name: 'Staff',
         });
 
-      logger.debug('Logger Success to edit data user', response.body);
+      logger.debug('Logger Success to edit data role with name same and id same', response.body);
+      expect(response.body.data.name).toBe('Staff');
+      expect(response.status).toBe(200);
+    });
+
+    it('Success to edit data role', async () => {
+      const response = await supertest(web)
+        .patch(`${baseUrlTest}/2`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          name: 'test2',
+        });
+
+      logger.debug('Logger Success to edit data role', response.body);
       expect(response.body.data.name).toBe('test2');
       expect(response.status).toBe(200);
     });
   });
 
-  describe('Service reset password', () => {
+  describe('Service Delete', () => {
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -260,35 +228,42 @@ describe('Service User', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('Success to reset password user', async () => {
+    it('Should be error because the role does not exist', async () => {
       const response = await supertest(web)
-        .post(`${baseUrlTest}/reset-password/2`)
+        .delete(`${baseUrlTest}/3`)
         .set('Cookie', cookieHeader ?? '');
 
-      logger.debug('Logger Success to reset password user', response.body);
-      expect(response.body.data.active).toBe('Inactive');
-      expect(response.status).toBe(200);
-    });
-  });
-
-  describe('Service take out', () => {
-    beforeEach(async () => {
-      const responseLogin = await AuthLogic.getLoginSuperAdmin();
-
-      // Simpan cookie dari respons login
-      cookies = responseLogin.headers['set-cookie'];
-      refresh_token = responseLogin.body.refresh_token;
-
-      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+      logger.debug(
+        'Logger Should be error because the role does not exist',
+        response.body
+      );
+      expect(response.status).toBe(404);
     });
 
-    it('Success to take out user', async () => {
+    it('Should be an error because the role is related to the user', async () => {
       const response = await supertest(web)
-        .post(`${baseUrlTest}/take-out/2`)
+        .delete(`${baseUrlTest}/1`)
         .set('Cookie', cookieHeader ?? '');
 
-      logger.debug('Logger Success to take out user', response.body);
-      expect(response.body.data.active).toBe('Take Out');
+      logger.debug(
+        'Logger Should be an error because the role is related to the user',
+        response.body
+      );
+      expect(response.body.errors).toEqual(
+        expect.arrayContaining([
+          "The role couldn't be deleted, because this role is relation with user!",
+        ])
+      );
+      expect(response.status).toBe(400);
+    });
+
+    it('Success to delete data role', async () => {
+      const response = await supertest(web)
+        .delete(`${baseUrlTest}/2`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Logger Success to delete data role', response.body);
+      expect(response.body.data.name).toBe('test2');
       expect(response.status).toBe(200);
     });
   });

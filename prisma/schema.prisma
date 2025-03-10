@@ -15,11 +15,13 @@ model User {
   gender     String   @db.VarChar(10)
   birthdate  DateTime @db.Date
   photo      String?
-  active     String   @default("No Active")
+  active     String   @default("Inactive")
+  role_id    Int
   created_by Int?
   created_at DateTime @default(now()) @db.Timestamptz
   updated_by Int?
   updated_at DateTime @updatedAt @db.Timestamptz
+  role       Role     @relation(fields: [role_id], references: [id])
 
   @@map("users")
 }
@@ -33,4 +35,34 @@ model AccessToken {
   updated_at    DateTime @updatedAt @db.Timestamptz
 
   @@map("access_tokens")
+}
+
+model Role {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique @db.VarChar(255)
+  created_by Int?
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_by Int?
+  updated_at DateTime @updatedAt @db.Timestamptz
+  users      User[]
+
+  @@map("roles")
+}
+
+model Menu {
+  id           Int      @id @default(autoincrement())
+  key_menu     String   @unique @db.VarChar(255)
+  name         String   @unique @db.VarChar(255)
+  order_number Int
+  url          String?
+  menu_id      Int?
+  active       String   @default("Active")
+  created_by   Int?
+  created_at   DateTime @default(now()) @db.Timestamptz
+  updated_by   Int?
+  updated_at   DateTime @updatedAt @db.Timestamptz
+  parent       Menu?    @relation("MenuToMenu", fields: [menu_id], references: [id])
+  children     Menu[]   @relation("MenuToMenu")
+
+  @@map("menus")
 }

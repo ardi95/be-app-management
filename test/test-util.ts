@@ -20,6 +20,8 @@ export class AuthLogic {
 export class UserTable {
   static async resetUserIdSequence() {
     await prismaClient.$executeRaw`ALTER SEQUENCE users_id_seq RESTART WITH 1;`;
+    await prismaClient.$executeRaw`ALTER SEQUENCE roles_id_seq RESTART WITH 1;`;
+    await prismaClient.$executeRaw`ALTER SEQUENCE menus_id_seq RESTART WITH 1;`;
   }
 
   static async callUserSeed() {
@@ -32,6 +34,8 @@ export class UserTable {
 
   static async delete() {
     await prismaClient.user.deleteMany({});
+    await prismaClient.role.deleteMany({})
+    await prismaClient.menu.deleteMany({})
     console.log('All records deleted');
   }
 }
