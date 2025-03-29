@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client';
 import { prismaClient } from '../config/database';
 import {
   IRequestMenu,
+  IRequestMenuChangeParent,
   IRequestMenuSort,
   IRequestMenuStore,
 } from '../model/menu-model';
@@ -16,8 +17,6 @@ export class MenuService {
     } else {
       where.menu_id = id;
     }
-
-    where.active = 'Active';
 
     const data = await prismaClient.menu.findMany({
       include: {
@@ -50,9 +49,7 @@ export class MenuService {
     });
   }
 
-  static async store(req: IRequestMenuStore, auth: IUserObject) {
-    const menu_id = req.menu_id ?? null;
-
+  static async menuLastByParentId(menu_id: number | null) {
     const menuLast = await prismaClient.menu.findFirst({
       where: {
         menu_id,
@@ -70,8 +67,16 @@ export class MenuService {
     let order_number = 0;
 
     if (menuLast) {
-      order_number = menuLast.order_number + 1;
+      order_number = menuLast.order_number;
     }
+
+    return order_number + 1;
+  }
+
+  static async store(req: IRequestMenuStore, auth: IUserObject) {
+    const menu_id = req.menu_id ?? null;
+
+    const order_number = await this.menuLastByParentId(menu_id)
 
     const data = await prismaClient.menu.create({
       data: {
@@ -113,5 +118,48 @@ export class MenuService {
         )
       );
     });
+  }
+
+  static async changeParent(id: number, req: IRequestMenuChangeParent, auth: IUserObject) {
+    const menu_id = req.menu_id ?? null;
+
+    const order_number = await this.menuLastByParentId(menu_id)
+
+    const data = await prismaClient.menu.update({
+      where: {
+        id
+      },
+      data: {
+        ...req,
+        order_number,
+        updated_by: auth.id,
+      }
+    })
+
+    return data;
+  }
+
+  static async destroy(id: number, auth: IUserObject) {
+    const data = await prismaClient.menu.update({
+      where: { id },
+      data: {
+        active: 'Inactive',
+        updated_by: auth.id,
+      },
+    });
+
+    return data;
+  }
+
+  static async active(id: number, auth: IUserObject) {
+    const data = await prismaClient.menu.update({
+      where: { id },
+      data: {
+        active: 'Active',
+        updated_by: auth.id,
+      },
+    });
+
+    return data;
   }
 }

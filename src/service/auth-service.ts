@@ -11,6 +11,7 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { AccessTokenService } from './accessToken-service';
 import { IUserObject } from '../model/user-model';
 import { IUserObjectRefresh } from '../model/accessToken-model';
+import { IMenu } from '../model/menu-model';
 
 export class AuthService {
   static async login(req: ILoginRequest) {
@@ -33,7 +34,10 @@ export class AuthService {
       active: user.active === 'Active' ? 'Active' : 'Inactive', // Konversi manual
     };
 
-    const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, formattedUser);
+    const { token, refresh_token } = await AccessTokenService.addToken(
+      prismaClient,
+      formattedUser
+    );
 
     return { token, refresh_token, user };
   }
@@ -53,24 +57,72 @@ export class AuthService {
       throw new ResponseError(403, ['Refresh token not found']);
     }
 
-    const user = await UserService.detail(prismaClient, accessToken.user_id)
+    const user = await UserService.detail(prismaClient, accessToken.user_id);
 
     if (!user) {
       throw new ResponseError(403, ['Refresh token not found']);
     }
 
     return prismaClient.$transaction(async (prisma) => {
-
       const formattedUser: IUserObject = {
         ...user,
         active: user.active === 'Active' ? 'Active' : 'Inactive', // Konversi manual
       };
 
-      const { token, refresh_token } = await AccessTokenService.addToken(prismaClient, formattedUser);
+      const { token, refresh_token } = await AccessTokenService.addToken(
+        prismaClient,
+        formattedUser
+      );
 
-      await AccessTokenService.destroy(prisma, refreshToken)
+      await AccessTokenService.destroy(prisma, refreshToken);
 
       return { token, refresh_token, user };
     });
+  }
+
+  static buildMenuTree(
+    menus: IMenu[],
+    parentId: number | null = null
+  ): IMenu[] {
+    return menus
+      .filter((menu) => menu.menu_id === parentId)
+      .map((menu) => ({
+        ...menu,
+        children: AuthService.buildMenuTree(menus, menu.id),
+      }));
+  }
+
+  static async listMenu(auth: IUserObject) {
+    const user = await prismaClient.user.findUnique({
+      where: { id: auth.id },
+      include: {
+        role: {
+          include: {
+            menus: {
+              include: {
+                menu: {
+                  include: {
+                    children: true, // Get child menus
+                  },
+                },
+              },
+              orderBy: [
+                { menu: { order_number: 'asc' } },
+                { menu: { id: 'asc' } },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new ResponseError(404, ['Data Not Found!']);
+    }
+
+    const flatMenus = user.role.menus.map((roleMenu) => roleMenu.menu);
+    const nestedMenus = await AuthService.buildMenuTree(flatMenus);
+
+    return nestedMenus;
   }
 }

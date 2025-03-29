@@ -13,7 +13,7 @@ export class AuthLogic {
       password: process.env.PASS_ADMIN,
     });
 
-    return response
+    return response;
   }
 }
 
@@ -34,8 +34,9 @@ export class UserTable {
 
   static async delete() {
     await prismaClient.user.deleteMany({});
-    await prismaClient.role.deleteMany({})
-    await prismaClient.menu.deleteMany({})
+    await prismaClient.role.deleteMany({});
+    await prismaClient.menu.deleteMany({});
+    await prismaClient.roleMenu.deleteMany({});
     console.log('All records deleted');
   }
 }

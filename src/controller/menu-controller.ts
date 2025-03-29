@@ -20,7 +20,7 @@ export class MenuController {
       const data = await MenuService.detail(parseInt(req.params.id));
 
       if (!data) {
-        return next(new ResponseError(404, ['The role does not exist!']));
+        return next(new ResponseError(404, ['The menu does not exist!']));
       }
 
       res.status(200).json({
@@ -82,6 +82,67 @@ export class MenuController {
 
       res.status(200).json({
         message: 'Success to sort data menu.',
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async changeParent(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
+      const data = await MenuService.changeParent(
+        parseInt(req.params.id),
+        req.body,
+        req.user
+      );
+
+      res.status(200).json({
+        message: 'Success to change parent menu.',
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async destroy(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
+      const data = await MenuService.destroy(
+        parseInt(req.params.id),
+        req.user
+      );
+
+      res.status(200).json({
+        message: 'Success to delete data menu.',
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async active(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
+      const data = await MenuService.active(
+        parseInt(req.params.id),
+        req.user
+      );
+
+      res.status(200).json({
+        message: 'Success to delete data menu.',
+        data,
       });
     } catch (e) {
       next(e);

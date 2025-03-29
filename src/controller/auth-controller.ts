@@ -60,11 +60,18 @@ export class AuthController {
 
   static async profile(req: Request, res: Response, next: NextFunction) {
     try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
       const data = req.user;
+
+      const menu = await AuthService.listMenu(req.user);
 
       res.status(200).json({
         message: 'Profile retrieved successfully',
         profile: data,
+        menu
       });
     } catch (e) {
       next(e);

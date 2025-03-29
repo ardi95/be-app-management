@@ -13,20 +13,20 @@ let refresh_token: string | null;
 let cookieHeader: string | null;
 
 describe('Service Menu', () => {
-  beforeAll(async () => {
-    await UserTable.delete();
-    await AccessTokenTable.delete();
-    await UserTable.resetUserIdSequence();
-    await AccessTokenTable.resetAccessTokenIdSequence();
-    await UserTable.callUserSeed();
-  });
-
-  afterAll(async () => {
-    await UserTable.delete();
-    await AccessTokenTable.delete();
-  });
-
   describe('Service Store', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -67,7 +67,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add menu', response.body);
 
-      expect(response.body.data.order_number).toBe(0);
+      expect(response.body.data.order_number).toBe(1);
       expect(response.body.data.key_menu).toBe('test');
       expect(response.status).toBe(200);
     });
@@ -121,7 +121,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add submenu', response.body);
 
-      expect(response.body.data.order_number).toBe(0);
+      expect(response.body.data.order_number).toBe(1);
       expect(response.body.data.key_menu).toBe('submenu');
       expect(response.status).toBe(200);
     });
@@ -139,13 +139,26 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add submenu 2', response.body);
 
-      expect(response.body.data.order_number).toBe(1);
+      expect(response.body.data.order_number).toBe(2);
       expect(response.body.data.key_menu).toBe('submenu2');
       expect(response.status).toBe(200);
     });
   });
 
   describe('Service List', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -156,6 +169,26 @@ describe('Service Menu', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'submenu',
+          name: 'Submenu',
+          url: '/submenu',
+          menu_id: 1,
+        });
+    });
+
     it('Success to get list menu', async () => {
       const response = await supertest(web)
         .get(baseUrlTest + '/0')
@@ -163,7 +196,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to get list menu', response.body);
       expect(response.body.data[0].key_menu).toBe('test');
-      expect(response.body.data[0].children.length).toBe(2);
+      expect(response.body.data[0].children.length).toBe(1);
       expect(response.status).toBe(200);
     });
 
@@ -179,6 +212,19 @@ describe('Service Menu', () => {
   });
 
   describe('Service Detail', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -187,6 +233,26 @@ describe('Service Menu', () => {
       refresh_token = responseLogin.body.refresh_token;
 
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'submenu',
+          name: 'Submenu',
+          url: '/submenu',
+          menu_id: 1,
+        });
     });
 
     it('Should be error because the menu does not exist', async () => {
@@ -213,6 +279,19 @@ describe('Service Menu', () => {
   });
 
   describe('Service Update', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -221,6 +300,28 @@ describe('Service Menu', () => {
       refresh_token = responseLogin.body.refresh_token;
 
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      for (let index = 1; index <= 2; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
     });
 
     it('Should be error because the menu does not exist', async () => {
@@ -265,7 +366,7 @@ describe('Service Menu', () => {
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          key_menu: 'submenu',
+          key_menu: 'submenu1',
           name: 'Submenu',
           url: '/submenu',
           menu_id: 1,
@@ -275,11 +376,11 @@ describe('Service Menu', () => {
         'Logger Success to edit data menu with key menu same and id same',
         response.body
       );
-      expect(response.body.data.key_menu).toBe('submenu');
+      expect(response.body.data.key_menu).toBe('submenu1');
       expect(response.status).toBe(200);
     });
 
-    it('Success to edit data role', async () => {
+    it('Success to edit data menu', async () => {
       const response = await supertest(web)
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
@@ -297,6 +398,19 @@ describe('Service Menu', () => {
   });
 
   describe('Service Sort', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -307,9 +421,31 @@ describe('Service Menu', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      for (let index = 1; index <= 2; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
+    });
+
     it('Should be error because the list menu must contain more equal to than 1 item', async () => {
       const response = await supertest(web)
-        .post(`${baseUrlTest}/1/sort`)
+        .post(`${baseUrlTest}/sort/1`)
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug(
@@ -327,7 +463,7 @@ describe('Service Menu', () => {
 
     it('Should be error because the id list not found', async () => {
       const response = await supertest(web)
-        .post(`${baseUrlTest}/1/sort`)
+        .post(`${baseUrlTest}/sort/1`)
         .set('Cookie', cookieHeader ?? '')
         .send({
           list_menu: [
@@ -350,7 +486,7 @@ describe('Service Menu', () => {
 
     it('Success sort menu', async () => {
       const response = await supertest(web)
-        .post(`${baseUrlTest}/1/sort`)
+        .post(`${baseUrlTest}/sort/1`)
         .set('Cookie', cookieHeader ?? '')
         .send({
           list_menu: [
@@ -370,6 +506,273 @@ describe('Service Menu', () => {
       logger.debug('Success sort menu', responseList.body);
       expect(response.status).toBe(200);
       expect(responseList.body.data.children[0].key_menu).toBe('submenu2');
+    });
+
+    it('Success step 2 sort menu', async () => {
+      const response = await supertest(web)
+        .post(`${baseUrlTest}/sort/1`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          list_menu: [
+            {
+              id: 3,
+            },
+            {
+              id: 2,
+            },
+          ],
+        });
+
+      const responseList = await supertest(web)
+        .get(`${baseUrlTest}/1/detail`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Success sort menu', responseList.body);
+      expect(response.status).toBe(200);
+      expect(responseList.body.data.children[0].key_menu).toBe('submenu2');
+    });
+  });
+
+  describe('Service Change Parent', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('first this test', async () => {
+      for (let index = 1; index <= 2; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `Test${index}`,
+            name: `Test${index}`,
+          });
+      }
+
+      for (let index = 1; index <= 3; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
+    });
+
+    it("Should be error because the menu doesn't exist", async () => {
+      const response = await supertest(web)
+        .post(`${baseUrlTest}/10/change-parent`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        "Should be error because the menu doesn't exist",
+        response.body
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it("Should be error because the parent menu doesn't exist", async () => {
+      const response = await supertest(web)
+        .post(`${baseUrlTest}/5/change-parent`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          menu_id: 10,
+        });
+
+      logger.debug(
+        "Should be error because the parent menu doesn't exist",
+        response.body
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it('Success change parent', async () => {
+      await supertest(web)
+        .post(`${baseUrlTest}/change-parent/5`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          menu_id: 2,
+        });
+
+      const response = await supertest(web)
+        .get(baseUrlTest + '/2')
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Success change parent', response.body);
+
+      expect(response.body.data[0].key_menu).toBe('submenu3');
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe('Service Delete', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      for (let index = 1; index <= 3; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
+    });
+
+    it("Should be error because the menu doesn't exist", async () => {
+      const response = await supertest(web)
+        .delete(`${baseUrlTest}/10`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        "Should be error because the menu doesn't exist",
+        response.body
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it('Success Inactive menu', async () => {
+      const response = await supertest(web)
+        .delete(`${baseUrlTest}/4`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        "Should be error because the menu doesn't exist",
+        response.body
+      );
+
+      expect(response.body.data.active).toBe('Inactive');
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe('Service Active', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('first this test', async () => {
+      await supertest(web)
+        .post(baseUrlTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: 'Test',
+          name: 'Test',
+        });
+
+      for (let index = 1; index <= 3; index++) {
+        await supertest(web)
+          .post(baseUrlTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
+
+      await supertest(web)
+        .delete(`${baseUrlTest}/4`)
+        .set('Cookie', cookieHeader ?? '');
+    });
+
+    it("Should be error because the menu doesn't exist", async () => {
+      const response = await supertest(web)
+        .put(`${baseUrlTest}/active/10`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug(
+        "Should be error because the menu doesn't exist",
+        response.body
+      );
+
+      expect(response.status).toBe(404);
+    });
+
+    it('Success Active menu', async () => {
+      const response = await supertest(web)
+        .put(`${baseUrlTest}/active/4`)
+        .set('Cookie', cookieHeader ?? '');
+
+      expect(response.body.data.active).toBe('Active');
+      expect(response.status).toBe(200);
     });
   });
 });

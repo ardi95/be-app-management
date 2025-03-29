@@ -6,26 +6,29 @@ import { logger } from '../../src/config/logging';
 
 dotenv.config();
 
+const baseUrlMenuTest = '/api/app-management/menu';
+const baseUrlRoleMenuTest = '/api/app-management/role-menu';
+
 let cookies: string | string[];
 let refresh_token: string | null;
-let cookieHeaderTemp: string | null;
+let cookieHeader: string | null;
 
 describe('Service Auth', () => {
-  beforeAll(async () => {
-    await UserTable.delete();
-    await AccessTokenTable.delete();
-    await UserTable.resetUserIdSequence();
-    await AccessTokenTable.resetAccessTokenIdSequence();
-    await UserTable.callUserSeed();
-  });
-
-  afterAll(async () => {
-    await UserTable.delete();
-    await AccessTokenTable.delete();
-  });
-
   describe('Login And Logout', () => {
-    it('Error Login', async () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    it('Should be error because the body request is not filled in', async () => {
       const response = await supertest(web).post('/api/login').send({
         email: '',
         password: '',
@@ -92,6 +95,111 @@ describe('Service Auth', () => {
   });
 
   describe('Service profile', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    it('first this test', async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      const cookieHeader = Array.isArray(cookies)
+        ? cookies.join('; ')
+        : cookies;
+
+      for (let index = 1; index <= 2; index++) {
+        await supertest(web)
+          .post(baseUrlMenuTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `Test${index}`,
+            name: `Test${index}`,
+          });
+      }
+
+      for (let index = 1; index <= 4; index++) {
+        await supertest(web)
+          .post(baseUrlMenuTest)
+          .set('Cookie', cookieHeader ?? '')
+          .send({
+            key_menu: `submenu${index}`,
+            name: `Submenu${index}`,
+            url: `/submenu${index}`,
+            menu_id: 1,
+          });
+      }
+
+      await supertest(web)
+        .post(baseUrlMenuTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: `submenuagain`,
+          name: `Submenuagain`,
+          url: `/submenuagain`,
+          menu_id: 4,
+        });
+
+      await supertest(web)
+        .post(`${baseUrlRoleMenuTest}/1`)
+        .set('Cookie', cookieHeader ?? '')
+        .send([
+          {
+            menu_id: 1,
+            active: true,
+            create: true,
+          },
+          {
+            menu_id: 4,
+            active: true,
+            create: true,
+          },
+          {
+            menu_id: 5,
+            active: true,
+            create: true,
+          },
+          {
+            menu_id: 6,
+            active: true,
+            create: true,
+          },
+          {
+            menu_id: 7,
+            active: true,
+            create: true,
+          },
+        ]);
+
+      await supertest(web)
+        .post(`${baseUrlMenuTest}/sort/1`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          list_menu: [
+            {
+              id: 4,
+            },
+            {
+              id: 3,
+            },
+            {
+              id: 5,
+            },
+          ],
+        });
+    });
+
     it('error check middleware verify token', async () => {
       const response = await supertest(web).get('/api/profile');
 
@@ -115,11 +223,29 @@ describe('Service Auth', () => {
         .set('Cookie', cookieHeader);
 
       logger.debug('Logger profile', response.body);
+
+      expect(response.body.menu[0].children.length).toBe(3);
+      expect(response.body.menu[0].children[0].id).toBe(4);
+      expect(response.body.menu[0].children[0].children.length).toBe(1);
+      expect(response.body.menu[0].children[1].children.length).toBe(0);
       expect(response.status).toBe(200);
     });
   });
 
   describe('Service Edit Profile', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     beforeEach(async () => {
       const responseLogin = await AuthLogic.getLoginSuperAdmin();
 
@@ -127,13 +253,13 @@ describe('Service Auth', () => {
       cookies = responseLogin.headers['set-cookie'];
       refresh_token = responseLogin.body.refresh_token;
 
-      cookieHeaderTemp = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
     it('Should be error if the name is not filled in', async () => {
       const response = await supertest(web)
         .patch('/api/edit-profile')
-        .set('Cookie', cookieHeaderTemp ?? '');
+        .set('Cookie', cookieHeader ?? '');
 
       logger.debug(
         'Logger Should be error if the name is not filled in',
@@ -157,7 +283,7 @@ describe('Service Auth', () => {
           gender: 'Male',
           birthdate: '1995-04-01',
         })
-        .set('Cookie', cookieHeaderTemp ?? '');
+        .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success to edit data profile', response.body);
       expect(response.body.data.name).toBe('admin2');
@@ -166,6 +292,19 @@ describe('Service Auth', () => {
   });
 
   describe('Service refresh token', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
     it('Error refresh token forbidden', async () => {
       const response = await supertest(web).post('/api/refresh-token');
 

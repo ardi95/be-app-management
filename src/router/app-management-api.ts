@@ -4,7 +4,8 @@ import { UserController } from '../controller/user-controller';
 import { validateDeleteRole, validateStoreRole, validateUpdateRole } from '../validation/role-validation';
 import { RoleController } from '../controller/role-controller';
 import { MenuController } from '../controller/menu-controller';
-import { validateSortMenu, validateStoreMenu, validateUpdateMenu } from '../validation/menu-validation';
+import { validateChangeParent, validateDeleteMenu, validateSortMenu, validateStoreMenu, validateUpdateMenu } from '../validation/menu-validation';
+import { RoleMenuController } from '../controller/role-menu-controller';
 
 export const appManagementRouter = express.Router();
 
@@ -27,5 +28,12 @@ appManagementRouter.delete('/role/:id', validateDeleteRole, RoleController.destr
 appManagementRouter.get('/menu/:id', MenuController.index);
 appManagementRouter.get('/menu/:id/detail', MenuController.detail);
 appManagementRouter.post('/menu', validateStoreMenu, MenuController.store);
-appManagementRouter.post('/menu/:id/sort', validateSortMenu, MenuController.sort);
+appManagementRouter.post('/menu/sort/:id', validateSortMenu, MenuController.sort);
+appManagementRouter.post('/menu/change-parent/:id', validateChangeParent, MenuController.changeParent);
 appManagementRouter.patch('/menu/:id', validateUpdateMenu, MenuController.update);
+appManagementRouter.delete('/menu/:id', validateDeleteMenu, MenuController.destroy);
+appManagementRouter.put('/menu/active/:id', validateDeleteMenu, MenuController.active);
+
+// ROLE MENU
+appManagementRouter.get('/role-menu/:role_id/:menu_id', RoleMenuController.index);
+appManagementRouter.post('/role-menu/:role_id', RoleMenuController.store);

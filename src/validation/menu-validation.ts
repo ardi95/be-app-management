@@ -134,3 +134,41 @@ export const validateSortMenu = async (
   }
 };
 
+export const validateChangeParent = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const dataExist = await MenuService.detail(parseInt(req.params.id));
+
+    if (!dataExist)
+      return next(new ResponseError(404, ['The menu does not exist!']));
+
+    if (req.body.menu_id) {
+      const dataParent = await MenuService.detail(parseInt(req.body.menu_id));
+
+      if (!dataParent)
+        return next(new ResponseError(404, ['The parent menu does not exist!']));
+    }
+    next();
+  } catch (e) {
+    next(e);
+  }
+}
+
+export const validateDeleteMenu = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const dataExist = await MenuService.detail(parseInt(req.params.id));
+
+    if (!dataExist)
+      return next(new ResponseError(404, ['The menu does not exist!']));
+    next();
+  } catch (e) {
+    next(e);
+  }
+}
