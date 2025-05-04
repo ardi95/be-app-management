@@ -80,13 +80,13 @@ export const validateDeleteRole = async (
       },
     });
 
-    if (relationUserExist) {
-      return next(
-        new ResponseError(400, [
-          "The role couldn't be deleted, because this role is relation with user!",
-        ])
-      );
-    }
+    // if (relationUserExist) {
+    //   return next(
+    //     new ResponseError(400, [
+    //       "The role couldn't be deleted, because this role is relation with user!",
+    //     ])
+    //   );
+    // }
 
     next();
   } catch (e) {

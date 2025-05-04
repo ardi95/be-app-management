@@ -68,6 +68,9 @@ export class AuthController {
 
       const menu = await AuthService.listMenu(req.user);
 
+      // console.log('MENU', menu[0].children?.[0]);
+      // console.log('MENU', menu[0].children?.[0].children?.[0]);
+
       res.status(200).json({
         message: 'Profile retrieved successfully',
         profile: data,
@@ -97,6 +100,25 @@ export class AuthController {
 
       res.status(200).json({
         message: 'Success to edit data user.',
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
+
+  static async permission(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return next(new ResponseError(401, ['Unauthorized!']));
+      }
+
+      const { key_menu } = req.query as { key_menu: string };
+
+      const data = await AuthService.permission(req.user, key_menu);
+
+      res.status(200).json({
+        message: 'Success to get permission.',
         data,
       });
     } catch (e) {

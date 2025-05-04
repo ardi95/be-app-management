@@ -7,6 +7,7 @@ import { logger } from '../../src/config/logging';
 dotenv.config();
 
 const baseUrlMenuTest = '/api/app-management/menu';
+const baseUrlRoleTest = '/api/app-management/role';
 const baseUrlRoleMenuTest = '/api/app-management/role-menu';
 
 let cookies: string | string[];
@@ -108,98 +109,6 @@ describe('Service Auth', () => {
       await AccessTokenTable.delete();
     });
 
-    it('first this test', async () => {
-      const responseLogin = await AuthLogic.getLoginSuperAdmin();
-
-      // Simpan cookie dari respons login
-      cookies = responseLogin.headers['set-cookie'];
-      refresh_token = responseLogin.body.refresh_token;
-
-      const cookieHeader = Array.isArray(cookies)
-        ? cookies.join('; ')
-        : cookies;
-
-      for (let index = 1; index <= 2; index++) {
-        await supertest(web)
-          .post(baseUrlMenuTest)
-          .set('Cookie', cookieHeader ?? '')
-          .send({
-            key_menu: `Test${index}`,
-            name: `Test${index}`,
-          });
-      }
-
-      for (let index = 1; index <= 4; index++) {
-        await supertest(web)
-          .post(baseUrlMenuTest)
-          .set('Cookie', cookieHeader ?? '')
-          .send({
-            key_menu: `submenu${index}`,
-            name: `Submenu${index}`,
-            url: `/submenu${index}`,
-            menu_id: 1,
-          });
-      }
-
-      await supertest(web)
-        .post(baseUrlMenuTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: `submenuagain`,
-          name: `Submenuagain`,
-          url: `/submenuagain`,
-          menu_id: 4,
-        });
-
-      await supertest(web)
-        .post(`${baseUrlRoleMenuTest}/1`)
-        .set('Cookie', cookieHeader ?? '')
-        .send([
-          {
-            menu_id: 1,
-            active: true,
-            create: true,
-          },
-          {
-            menu_id: 4,
-            active: true,
-            create: true,
-          },
-          {
-            menu_id: 5,
-            active: true,
-            create: true,
-          },
-          {
-            menu_id: 6,
-            active: true,
-            create: true,
-          },
-          {
-            menu_id: 7,
-            active: true,
-            create: true,
-          },
-        ]);
-
-      await supertest(web)
-        .post(`${baseUrlMenuTest}/sort/1`)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          list_menu: [
-            {
-              id: 4,
-            },
-            {
-              id: 3,
-            },
-            {
-              id: 5,
-            },
-          ],
-        });
-    });
-
     it('error check middleware verify token', async () => {
       const response = await supertest(web).get('/api/profile');
 
@@ -218,16 +127,98 @@ describe('Service Auth', () => {
         ? cookies.join('; ')
         : cookies;
 
+      await supertest(web)
+        .post(baseUrlMenuTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: `submenuagain`,
+          name: `Submenuagain`,
+          url: `/submenuagain`,
+          menu_id: 3,
+        });
+
+      await supertest(web)
+        .post(baseUrlMenuTest)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          key_menu: `submenuagainagain`,
+          name: `Submenuagain`,
+          url: `/submenuagain`,
+          menu_id: 6,
+        });
+
+      await supertest(web)
+        .post(`${baseUrlRoleMenuTest}/1`)
+        .set('Cookie', cookieHeader ?? '')
+        .send([
+          {
+            menu_id: 6,
+            active: true,
+            create: true,
+          },
+          {
+            menu_id: 7,
+            active: true,
+            create: true,
+          },
+        ]);
+
+      await supertest(web)
+        .post(`${baseUrlMenuTest}/sort/1`)
+        .set('Cookie', cookieHeader ?? '')
+        .send({
+          list_menu: [
+            {
+              id: 3,
+            },
+            {
+              id: 2,
+            },
+            {
+              id: 4,
+            },
+            {
+              id: 5,
+            },
+          ],
+        });
+
       const response = await supertest(web)
         .get('/api/profile')
         .set('Cookie', cookieHeader);
 
       logger.debug('Logger profile', response.body);
 
-      expect(response.body.menu[0].children.length).toBe(3);
-      expect(response.body.menu[0].children[0].id).toBe(4);
+      expect(response.body.menu[0].children.length).toBe(4);
       expect(response.body.menu[0].children[0].children.length).toBe(1);
       expect(response.body.menu[0].children[1].children.length).toBe(0);
+      expect(response.status).toBe(200);
+    });
+
+    it('check menu 0 if role delete', async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      const cookieHeader = Array.isArray(cookies)
+        ? cookies.join('; ')
+        : cookies;
+
+      console.log('ARDI3', baseUrlRoleTest);
+      await supertest(web)
+        .delete(`${baseUrlRoleTest}/1`)
+        .set('Cookie', cookieHeader ?? '');
+
+      const response = await supertest(web)
+        .get('/api/profile')
+        .set('Cookie', cookieHeader);
+
+      console.log('ARDI2', response.body);
+      console.log('ARDI', response.body.menu);
+
+      expect(response.body.menu.length).toBe(0);
       expect(response.status).toBe(200);
     });
   });
@@ -334,6 +325,69 @@ describe('Service Auth', () => {
 
       logger.debug('Logger refresh token', response.body);
       expect(response.status).toBe(403);
+    });
+  });
+
+  describe('Service Permission', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    it('error check middleware verify token', async () => {
+      const response = await supertest(web).get('/api/permission');
+
+      expect(response.status).toBe(401);
+    });
+
+    it('Should be error because the key_menu is not filled in', async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      const cookieHeader = Array.isArray(cookies)
+        ? cookies.join('; ')
+        : cookies;
+
+      const response = await supertest(web)
+        .get('/api/permission')
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Logger permission', response.body);
+      expect(response.body.errors).toEqual(
+        expect.arrayContaining(['The key menu is required!'])
+      );
+      expect(response.status).toBe(400);
+    });
+
+    it('Success get permission', async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      const cookieHeader = Array.isArray(cookies)
+        ? cookies.join('; ')
+        : cookies;
+
+      const response = await supertest(web)
+        .get('/api/permission?key_menu=user')
+        .set('Cookie', cookieHeader ?? '');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.access).toBe(true);
+      expect(response.body.data.create).toBe(true);
     });
   });
 });

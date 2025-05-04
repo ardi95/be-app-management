@@ -29,7 +29,7 @@ export class RoleMenuService {
         roles: { // Ganti `roleMenu` dengan `roles` sesuai model relasi di Prisma
           where: { role_id },
           select: {
-            active: true,
+            access: true,
             create: true,
             update: true,
             delete: true,
@@ -50,7 +50,7 @@ export class RoleMenuService {
         url: menu.url,
         order_number: menu.order_number,
         permissions: {
-          active: roleMenu?.active ?? false,
+          access: roleMenu?.access ?? false,
           create: roleMenu?.create ?? false,
           update: roleMenu?.update ?? false,
           delete: roleMenu?.delete ?? false,
@@ -74,7 +74,7 @@ export class RoleMenuService {
             role_id_menu_id: { role_id, menu_id: item.menu_id },
           },
           update: {
-            active: item.active,
+            access: item.access,
             create: item.create ?? false,
             update: item.update ?? false,
             delete: item.delete ?? false,
@@ -85,7 +85,7 @@ export class RoleMenuService {
           create: {
             role: { connect: { id: role_id } },
             menu: { connect: { id: item.menu_id } },
-            active: item.active,
+            access: item.access,
             create: item.create ?? false,
             update: item.update ?? false,
             delete: item.delete ?? false,

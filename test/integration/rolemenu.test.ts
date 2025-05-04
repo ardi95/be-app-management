@@ -56,7 +56,7 @@ describe('Service Role Menu', () => {
             key_menu: `submenu${index}`,
             name: `Submenu${index}`,
             url: `/submenu${index}`,
-            menu_id: 1,
+            menu_id: 6,
           });
       }
     });
@@ -68,7 +68,7 @@ describe('Service Role Menu', () => {
         .send([
           {
             menu_id: 1,
-            active: true,
+            access: true,
           },
         ]);
 
@@ -89,7 +89,7 @@ describe('Service Role Menu', () => {
         .send([
           {
             menu_id: 10,
-            active: true,
+            access: true,
           },
         ]);
 
@@ -109,8 +109,8 @@ describe('Service Role Menu', () => {
         .set('Cookie', cookieHeader ?? '')
         .send([
           {
-            menu_id: 1,
-            active: true,
+            menu_id: 6,
+            access: true,
           },
         ]);
 
@@ -124,8 +124,8 @@ describe('Service Role Menu', () => {
         .set('Cookie', cookieHeader ?? '')
         .send([
           {
-            menu_id: 1,
-            active: true,
+            menu_id: 6,
+            access: true,
             create: true,
           },
         ]);
@@ -133,7 +133,7 @@ describe('Service Role Menu', () => {
       const data = await prismaClient.roleMenu.findMany();
 
       expect(response.status).toBe(200);
-      expect(data.length).toBe(1);
+      expect(data.length).toBe(6);
     });
   });
 
@@ -178,7 +178,7 @@ describe('Service Role Menu', () => {
             key_menu: `submenu${index}`,
             name: `Submenu${index}`,
             url: `/submenu${index}`,
-            menu_id: 1,
+            menu_id: 6,
           });
       }
 
@@ -187,17 +187,17 @@ describe('Service Role Menu', () => {
         .set('Cookie', cookieHeader ?? '')
         .send([
           {
-            menu_id: 1,
-            active: true,
+            menu_id: 7,
+            access: true,
           },
           {
-            menu_id: 2,
-            active: true,
+            menu_id: 8,
+            access: true,
             create: true,
           },
           {
-            menu_id: 3,
-            active: true,
+            menu_id: 9,
+            access: true,
             update: true,
           },
         ]);
@@ -261,14 +261,11 @@ describe('Service Role Menu', () => {
 
     it('Success only 2 menu if 1 submenu is Inactive', async () => {
       await supertest(web)
-        .delete(`${baseUrlMenuTest}/4`)
+        .delete(`${baseUrlMenuTest}/7`)
         .set('Cookie', cookieHeader ?? '')
-        .send({
-          active: 'Inactive',
-        });
 
       const response = await supertest(web)
-        .get(`${baseUrlTest}/1/1`)
+        .get(`${baseUrlTest}/1/6`)
         .set('Cookie', cookieHeader ?? '');
 
       expect(response.body.data.length).toBe(2);

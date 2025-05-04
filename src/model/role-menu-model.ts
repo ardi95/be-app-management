@@ -1,6 +1,6 @@
 export interface IRequestRoleMenu {
   menu_id: number;
-  active: boolean;
+  access: boolean;
   create?: boolean;
   update?: boolean;
   delete?: boolean;

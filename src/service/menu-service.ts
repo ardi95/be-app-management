@@ -83,11 +83,13 @@ export class MenuService {
         key_menu: req.key_menu,
         name: req.name,
         order_number,
+        url: req.url,
         menu_id,
         active: 'Active',
         created_by: auth.id,
       },
     });
+    
 
     return data;
   }
@@ -96,7 +98,9 @@ export class MenuService {
     const data = await prismaClient.menu.update({
       where: { id },
       data: {
-        ...req,
+        key_menu: req.key_menu,
+        name: req.name,
+        url: req.url,
         updated_by: auth.id,
       },
     });
@@ -130,7 +134,7 @@ export class MenuService {
         id
       },
       data: {
-        ...req,
+        menu_id: req.menu_id,
         order_number,
         updated_by: auth.id,
       }
@@ -140,15 +144,23 @@ export class MenuService {
   }
 
   static async destroy(id: number, auth: IUserObject) {
-    const data = await prismaClient.menu.update({
-      where: { id },
-      data: {
-        active: 'Inactive',
-        updated_by: auth.id,
-      },
+    return await prismaClient.$transaction(async (tx) => {
+      await tx.roleMenu.deleteMany({
+        where: { menu_id: id },
+      });
+  
+      const data = await tx.menu.update({
+        where: { id },
+        data: {
+          active: 'Inactive',
+          updated_by: auth.id,
+        },
+      });
+  
+  
+      return data;
     });
 
-    return data;
   }
 
   static async active(id: number, auth: IUserObject) {

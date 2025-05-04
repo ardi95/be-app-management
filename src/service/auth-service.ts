@@ -2,15 +2,9 @@ import { prismaClient } from '../config/database';
 import { ResponseError } from '../config/response-error';
 import { ILoginRequest } from '../model/auth-model';
 import bcrypt from 'bcrypt';
-import {
-  generateRefreshToken,
-  generateToken,
-} from '../validation/auth-validation';
 import { UserService } from './user-service';
-import jwt, { JwtPayload } from 'jsonwebtoken';
 import { AccessTokenService } from './accessToken-service';
 import { IUserObject } from '../model/user-model';
-import { IUserObjectRefresh } from '../model/accessToken-model';
 import { IMenu } from '../model/menu-model';
 
 export class AuthService {
@@ -93,36 +87,90 @@ export class AuthService {
   }
 
   static async listMenu(auth: IUserObject) {
-    const user = await prismaClient.user.findUnique({
+    const checkRole = await prismaClient.user.findUnique({
       where: { id: auth.id },
-      include: {
-        role: {
-          include: {
-            menus: {
-              include: {
-                menu: {
-                  include: {
-                    children: true, // Get child menus
+      select: { role_id: true },
+    });
+
+    let nestedMenus: any[] = []; // lebih aman didefinisikan tipe arraynya
+
+    if (checkRole?.role_id) {
+      const user = await prismaClient.user.findUnique({
+        where: { id: auth.id },
+        include: {
+          role: {
+            include: {
+              menus: {
+                include: {
+                  menu: {
+                    include: {
+                      children: true, // Get child menus
+                    },
+                  },
+                },
+                orderBy: {
+                  menu: {
+                    order_number: 'asc', // Ini langsung objek, jangan array
                   },
                 },
               },
-              orderBy: [
-                { menu: { order_number: 'asc' } },
-                { menu: { id: 'asc' } },
-              ],
             },
           },
         },
+      });
+
+      if (!user || !user.role) {
+        throw new ResponseError(404, ['Data Not Found!']);
+      }
+
+      const flatMenus = user.role.menus.map((roleMenu) => roleMenu.menu);
+      nestedMenus = await AuthService.buildMenuTree(flatMenus);
+    }
+
+    return nestedMenus;
+  }
+
+  static async permission(auth: IUserObject, key_menu: string) {
+    const data = {
+      access: false,
+      create: false,
+      update: false,
+      delete: false,
+      approve1: false,
+      approve2: false,
+      approve3: false,
+    };
+
+    const checkRole = await prismaClient.user.findUnique({
+      where: { id: auth.id },
+      select: { role_id: true },
+    });
+
+    const menu = await prismaClient.menu.findFirst({
+      where: {
+        key_menu,
       },
     });
 
-    if (!user) {
-      throw new ResponseError(404, ['Data Not Found!']);
+    if (checkRole?.role_id && menu) {
+      const roleMenu = await prismaClient.roleMenu.findFirst({
+        where: {
+          menu_id: menu.id,
+          role_id: checkRole.role_id,
+        },
+      });
+
+      if (roleMenu) {
+        data.access = roleMenu.access;
+        data.create = roleMenu.create;
+        data.update = roleMenu.update;
+        data.delete = roleMenu.delete;
+        data.approve1 = roleMenu.approval;
+        data.approve2 = roleMenu.approval_2;
+        data.approve3 = roleMenu.approval_3;
+      }
     }
 
-    const flatMenus = user.role.menus.map((roleMenu) => roleMenu.menu);
-    const nestedMenus = await AuthService.buildMenuTree(flatMenus);
-
-    return nestedMenus;
+    return data;
   }
 }

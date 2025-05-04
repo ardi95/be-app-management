@@ -76,7 +76,7 @@ export class RoleController {
       const data = await RoleService.destroy(parseInt(req.params.id))
 
       res.status(200).json({
-        message: 'Success to edit data role.',
+        message: 'Success to delete data role.',
         data
       });
     } catch (e) {

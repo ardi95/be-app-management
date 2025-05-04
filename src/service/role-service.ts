@@ -69,7 +69,7 @@ export class RoleService {
     const data = await prismaClient.role.update({
       where: { id },
       data: {
-        ...req,
+        name: req.name,
         updated_by: auth.id,
       },
     });
@@ -78,10 +78,18 @@ export class RoleService {
   }
 
   static async destroy(id: number) {
-    const data = await prismaClient.role.delete({
-      where: { id },
+    return await prismaClient.$transaction(async (tx) => {
+      await tx.user.updateMany({
+        where: { role_id: id },
+        data: { role_id: null }, // atau hapus relasi, tergantung modelnya
+      });
+  
+      const data = await tx.role.delete({
+        where: { id },
+      });
+  
+      return data;
     });
 
-    return data;
   }
 }

@@ -240,22 +240,22 @@ describe('Service Role', () => {
       expect(response.status).toBe(404);
     });
 
-    it('Should be an error because the role is related to the user', async () => {
-      const response = await supertest(web)
-        .delete(`${baseUrlTest}/1`)
-        .set('Cookie', cookieHeader ?? '');
+    // it('Should be an error because the role is related to the user', async () => {
+    //   const response = await supertest(web)
+    //     .delete(`${baseUrlTest}/1`)
+    //     .set('Cookie', cookieHeader ?? '');
 
-      logger.debug(
-        'Logger Should be an error because the role is related to the user',
-        response.body
-      );
-      expect(response.body.errors).toEqual(
-        expect.arrayContaining([
-          "The role couldn't be deleted, because this role is relation with user!",
-        ])
-      );
-      expect(response.status).toBe(400);
-    });
+    //   logger.debug(
+    //     'Logger Should be an error because the role is related to the user',
+    //     response.body
+    //   );
+    //   expect(response.body.errors).toEqual(
+    //     expect.arrayContaining([
+    //       "The role couldn't be deleted, because this role is relation with user!",
+    //     ])
+    //   );
+    //   expect(response.status).toBe(400);
+    // });
 
     it('Success to delete data role', async () => {
       const response = await supertest(web)

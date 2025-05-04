@@ -79,6 +79,7 @@ export class UserService {
     id: number
   ) {
     return await prisma.user.findUnique({
+      include: { role: true },
       where: {
         id,
       },
@@ -108,8 +109,10 @@ export class UserService {
     const data = await prismaClient.user.update({
       where: { id },
       data: {
-        ...req,
+        name: req.name,
+        gender: req.gender,
         birthdate: new Date(req.birthdate),
+        role_id: req.role_id,
         updated_by: auth.id,
       },
     });

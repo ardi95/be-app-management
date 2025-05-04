@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { IUserObject } from '../model/user-model';
 import { ResponseError } from '../config/response-error';
 import { prismaClient } from '../config/database';
-import crypto from 'crypto'
+import crypto from 'crypto';
 
 const secret = process.env.SECRET_JWT || 'default_secret_key';
 
@@ -27,7 +27,13 @@ const editProfileSchema = z.object({
     .min(1, `The gender is required!`),
   birthdate: z
     .string({ message: `The birthdate is required!` })
-    .date(`The birthdate format must be: YYYY-MM-DD!`)
+    .date(`The birthdate format must be: YYYY-MM-DD!`),
+});
+
+const permissionSchema = z.object({
+  key_menu: z
+    .string({ message: `The key menu is required!` })
+    .min(1, `The key menu is required!`),
 });
 
 export const generateToken = (user: IUserObject) => {
@@ -59,7 +65,6 @@ export const verifyToken = async (
     },
   });
 
-
   if (!countToken) {
     return next(new ResponseError(401, ['Unauthorized']));
   }
@@ -88,7 +93,7 @@ export const validateLogin = async (
   }
 };
 
-export const validateEditProfile = async(
+export const validateEditProfile = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -100,4 +105,18 @@ export const validateEditProfile = async(
   } catch (e) {
     next(e);
   }
-}
+};
+
+export const validatePermission = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    await permissionSchema.parse(req.query);
+
+    next();
+  } catch (e) {
+    next(e);
+  }
+};

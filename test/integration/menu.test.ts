@@ -67,7 +67,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add menu', response.body);
 
-      expect(response.body.data.order_number).toBe(1);
+      expect(response.body.data.order_number).toBe(2);
       expect(response.body.data.key_menu).toBe('test');
       expect(response.status).toBe(200);
     });
@@ -79,7 +79,7 @@ describe('Service Menu', () => {
         .send({
           key_menu: 'test',
           name: 'Test',
-          menu_id: 2,
+          menu_id: 10,
         });
 
       logger.debug(
@@ -121,7 +121,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add submenu', response.body);
 
-      expect(response.body.data.order_number).toBe(1);
+      expect(response.body.data.order_number).toBe(5);
       expect(response.body.data.key_menu).toBe('submenu');
       expect(response.status).toBe(200);
     });
@@ -139,7 +139,7 @@ describe('Service Menu', () => {
 
       logger.debug('Logger Success to add submenu 2', response.body);
 
-      expect(response.body.data.order_number).toBe(2);
+      expect(response.body.data.order_number).toBe(6);
       expect(response.body.data.key_menu).toBe('submenu2');
       expect(response.status).toBe(200);
     });
@@ -169,34 +169,14 @@ describe('Service Menu', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('first this test', async () => {
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'Test',
-          name: 'Test',
-        });
-
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'submenu',
-          name: 'Submenu',
-          url: '/submenu',
-          menu_id: 1,
-        });
-    });
-
     it('Success to get list menu', async () => {
       const response = await supertest(web)
         .get(baseUrlTest + '/0')
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success to get list menu', response.body);
-      expect(response.body.data[0].key_menu).toBe('test');
-      expect(response.body.data[0].children.length).toBe(1);
+      expect(response.body.data[0].key_menu).toBe('appmanagement');
+      expect(response.body.data[0].children.length).toBe(4);
       expect(response.status).toBe(200);
     });
 
@@ -206,7 +186,7 @@ describe('Service Menu', () => {
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success to get list submenu', response.body);
-      expect(response.body.data[0].key_menu).toBe('submenu');
+      expect(response.body.data[0].key_menu).toBe('user');
       expect(response.status).toBe(200);
     });
   });
@@ -235,26 +215,6 @@ describe('Service Menu', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('first this test', async () => {
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'Test',
-          name: 'Test',
-        });
-
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'submenu',
-          name: 'Submenu',
-          url: '/submenu',
-          menu_id: 1,
-        });
-    });
-
     it('Should be error because the menu does not exist', async () => {
       const response = await supertest(web)
         .get(`${baseUrlTest}/10/detail`)
@@ -273,7 +233,7 @@ describe('Service Menu', () => {
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success get detail menu', response.body);
-      expect(response.body.data.key_menu).toBe('submenu');
+      expect(response.body.data.key_menu).toBe('user');
       expect(response.status).toBe(200);
     });
   });
@@ -302,28 +262,6 @@ describe('Service Menu', () => {
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
     });
 
-    it('first this test', async () => {
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'Test',
-          name: 'Test',
-        });
-
-      for (let index = 1; index <= 2; index++) {
-        await supertest(web)
-          .post(baseUrlTest)
-          .set('Cookie', cookieHeader ?? '')
-          .send({
-            key_menu: `submenu${index}`,
-            name: `Submenu${index}`,
-            url: `/submenu${index}`,
-            menu_id: 1,
-          });
-      }
-    });
-
     it('Should be error because the menu does not exist', async () => {
       const response = await supertest(web)
         .patch(`${baseUrlTest}/detail/10`)
@@ -347,7 +285,7 @@ describe('Service Menu', () => {
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          key_menu: 'Test',
+          key_menu: 'appmanagement',
           name: 'Test',
         });
 
@@ -366,7 +304,7 @@ describe('Service Menu', () => {
         .patch(`${baseUrlTest}/2`)
         .set('Cookie', cookieHeader ?? '')
         .send({
-          key_menu: 'submenu1',
+          key_menu: 'user',
           name: 'Submenu',
           url: '/submenu',
           menu_id: 1,
@@ -376,7 +314,7 @@ describe('Service Menu', () => {
         'Logger Success to edit data menu with key menu same and id same',
         response.body
       );
-      expect(response.body.data.key_menu).toBe('submenu1');
+      expect(response.body.data.key_menu).toBe('user');
       expect(response.status).toBe(200);
     });
 
@@ -419,28 +357,6 @@ describe('Service Menu', () => {
       refresh_token = responseLogin.body.refresh_token;
 
       cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
-    });
-
-    it('first this test', async () => {
-      await supertest(web)
-        .post(baseUrlTest)
-        .set('Cookie', cookieHeader ?? '')
-        .send({
-          key_menu: 'Test',
-          name: 'Test',
-        });
-
-      for (let index = 1; index <= 2; index++) {
-        await supertest(web)
-          .post(baseUrlTest)
-          .set('Cookie', cookieHeader ?? '')
-          .send({
-            key_menu: `submenu${index}`,
-            name: `Submenu${index}`,
-            url: `/submenu${index}`,
-            menu_id: 1,
-          });
-      }
     });
 
     it('Should be error because the list menu must contain more equal to than 1 item', async () => {
@@ -496,6 +412,12 @@ describe('Service Menu', () => {
             {
               id: 2,
             },
+            {
+              id: 4,
+            },
+            {
+              id: 5,
+            },
           ],
         });
 
@@ -505,7 +427,7 @@ describe('Service Menu', () => {
 
       logger.debug('Success sort menu', responseList.body);
       expect(response.status).toBe(200);
-      expect(responseList.body.data.children[0].key_menu).toBe('submenu2');
+      expect(responseList.body.data.children[0].key_menu).toBe('role');
     });
 
     it('Success step 2 sort menu', async () => {
@@ -520,6 +442,12 @@ describe('Service Menu', () => {
             {
               id: 2,
             },
+            {
+              id: 4,
+            },
+            {
+              id: 5,
+            },
           ],
         });
 
@@ -529,7 +457,7 @@ describe('Service Menu', () => {
 
       logger.debug('Success sort menu', responseList.body);
       expect(response.status).toBe(200);
-      expect(responseList.body.data.children[0].key_menu).toBe('submenu2');
+      expect(responseList.body.data.children[0].key_menu).toBe('role');
     });
   });
 
@@ -624,7 +552,7 @@ describe('Service Menu', () => {
 
       logger.debug('Success change parent', response.body);
 
-      expect(response.body.data[0].key_menu).toBe('submenu3');
+      expect(response.body.data[0].key_menu).toBe('rolemenu');
       expect(response.status).toBe(200);
     });
   });
