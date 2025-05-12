@@ -27,6 +27,8 @@ appManagementRouter.delete('/role/:id', validateDeleteRole, RoleController.destr
 // MENU
 appManagementRouter.get('/menu/:id', MenuController.index);
 appManagementRouter.get('/menu/:id/detail', MenuController.detail);
+appManagementRouter.get('/menu/:id/list-header', MenuController.listHeader);
+appManagementRouter.get('/menu-structure', MenuController.getMenuStructure);
 appManagementRouter.post('/menu', validateStoreMenu, MenuController.store);
 appManagementRouter.post('/menu/sort/:id', validateSortMenu, MenuController.sort);
 appManagementRouter.post('/menu/change-parent/:id', validateChangeParent, MenuController.changeParent);

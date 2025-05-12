@@ -703,4 +703,96 @@ describe('Service Menu', () => {
       expect(response.status).toBe(200);
     });
   });
+
+  describe('Service List Header', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('Success to get list header', async () => {
+      const response = await supertest(web)
+        .get(`${baseUrlTest}/2/list-header`)
+        .query({
+          page: 1,
+          per_page: 10,
+        })
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Logger Success to get list user', response.body);
+      expect(response.body.data[2].name).toBe('Role');
+      expect(response.status).toBe(200);
+    });
+
+    it('Success to get menu structure', async () => {
+      const response = await supertest(web)
+        .get(`${baseUrlTest}/2/list-header`)
+        .query({
+          order_field: 'name',
+          order_dir: 'desc',
+          page: 1,
+          per_page: 10,
+        })
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Logger Success to get menu structure', response.body);
+      expect(response.body.data[3].key_menu).toBe('appmanagement');
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe('Service Get Menu Structure', () => {
+    beforeAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+      await UserTable.resetUserIdSequence();
+      await AccessTokenTable.resetAccessTokenIdSequence();
+      await UserTable.callUserSeed();
+    });
+
+    afterAll(async () => {
+      await UserTable.delete();
+      await AccessTokenTable.delete();
+    });
+
+    beforeEach(async () => {
+      const responseLogin = await AuthLogic.getLoginSuperAdmin();
+
+      // Simpan cookie dari respons login
+      cookies = responseLogin.headers['set-cookie'];
+      refresh_token = responseLogin.body.refresh_token;
+
+      cookieHeader = Array.isArray(cookies) ? cookies.join('; ') : cookies;
+    });
+
+    it('Success to get menu structure', async () => {
+      const response = await supertest(web)
+        .get(`${baseUrlTest}-structure`)
+        .set('Cookie', cookieHeader ?? '');
+
+      logger.debug('Logger Success to get menu structure', response.body);
+      expect(response.body[0].key_menu).toBe('appmanagement');
+      expect(response.body[0].children.length).toBe(4);
+      expect(response.body[0].children[0].key_menu).toBe('user');
+      expect(response.status).toBe(200);
+    });
+  });
 });
