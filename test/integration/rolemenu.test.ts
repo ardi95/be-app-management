@@ -222,7 +222,7 @@ describe('Service Role Menu', () => {
 
     it('Should be error because the role does not exist', async () => {
       const response = await supertest(web)
-        .get(`${baseUrlTest}/10/1`)
+        .get(`${baseUrlTest}/10`)
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug(
@@ -235,40 +235,14 @@ describe('Service Role Menu', () => {
       expect(response.status).toBe(404);
     });
 
-    it('Should be error because the menu does not exist', async () => {
-      const response = await supertest(web)
-        .get(`${baseUrlTest}/1/10`)
-        .set('Cookie', cookieHeader ?? '');
-
-      logger.debug(
-        'Logger Should be error because the menu does not exist',
-        response.body
-      );
-      expect(response.body.errors).toEqual(
-        expect.arrayContaining(['The menu does not exist!'])
-      );
-      expect(response.status).toBe(404);
-    });
-
     it('Success get role menu', async () => {
       const response = await supertest(web)
-        .get(`${baseUrlTest}/1/1`)
+        .get(`${baseUrlTest}/1`)
         .set('Cookie', cookieHeader ?? '');
 
       logger.debug('Logger Success get role menu', response.body);
       expect(response.status).toBe(200);
-    });
-
-    it('Success only 2 menu if 1 submenu is Inactive', async () => {
-      await supertest(web)
-        .delete(`${baseUrlMenuTest}/7`)
-        .set('Cookie', cookieHeader ?? '')
-
-      const response = await supertest(web)
-        .get(`${baseUrlTest}/1/6`)
-        .set('Cookie', cookieHeader ?? '');
-
-      expect(response.body.data.length).toBe(2);
+      expect(response.body.data[0].key_menu).toBe('appmanagement');
     });
   });
 });

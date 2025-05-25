@@ -37,5 +37,5 @@ appManagementRouter.delete('/menu/:id', validateDeleteMenu, MenuController.destr
 appManagementRouter.put('/menu/active/:id', validateDeleteMenu, MenuController.active);
 
 // ROLE MENU
-appManagementRouter.get('/role-menu/:role_id/:menu_id', RoleMenuController.index);
+appManagementRouter.get('/role-menu/:role_id', RoleMenuController.index);
 appManagementRouter.post('/role-menu/:role_id', RoleMenuController.store);

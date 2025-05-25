@@ -2,25 +2,18 @@ import { NextFunction, Request, Response } from 'express';
 import { ResponseError } from '../config/response-error';
 import { RoleMenuService } from '../service/role-menu-service';
 import { RoleService } from '../service/role-service';
-import { MenuService } from '../service/menu-service';
 
 export class RoleMenuController {
   static async index(req: Request, res: Response, next: NextFunction) {
     try {
       const role_id = parseInt(req.params.role_id);
-      const menu_id = parseInt(req.params.menu_id);
 
       const dataRole = await RoleService.detail(role_id);
       if (!dataRole) {
         return next(new ResponseError(404, ['The role does not exist!']));
       }
 
-      const dataMenu = await MenuService.detail(menu_id);
-      if (!dataMenu) {
-        return next(new ResponseError(404, ['The menu does not exist!']));
-      }
-
-      const data = await RoleMenuService.index(role_id, menu_id);
+      const data = await RoleMenuService.index(role_id);
 
       res.status(200).json({
         ...data,

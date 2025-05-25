@@ -1,69 +1,126 @@
-import { Prisma } from '@prisma/client';
 import { prismaClient } from '../config/database';
-import { IRequestRoleMenu } from '../model/role-menu-model';
-import { RoleService } from './role-service';
+import { IMenuWithPerm, IRequestRoleMenu, IRoleMenuPerm } from '../model/role-menu-model';
 
 export class RoleMenuService {
-  static async index(role_id: number, menu_id: number) {
-    const where: Prisma.MenuWhereInput = {};
+  // static async index(role_id: number, menu_id: number) {
+  //   const where: Prisma.MenuWhereInput = {};
 
-    if (menu_id === 0) {
-      where.menu_id = null;
-    } else {
-      where.menu_id = menu_id;
-    }
+  //   if (menu_id === 0) {
+  //     where.menu_id = null;
+  //   } else {
+  //     where.menu_id = menu_id;
+  //   }
 
-    where.active = 'Active';
+  //   where.active = 'Active';
 
+  //   const menus = await prismaClient.menu.findMany({
+  //     where,
+  //     orderBy: [
+  //       {
+  //         order_number: 'asc',
+  //       },
+  //       {
+  //         id: 'asc',
+  //       },
+  //     ],
+  //     include: {
+  //       roles: { // Ganti `roleMenu` dengan `roles` sesuai model relasi di Prisma
+  //         where: { role_id },
+  //         select: {
+  //           access: true,
+  //           create: true,
+  //           update: true,
+  //           delete: true,
+  //           approval: true,
+  //           approval_2: true,
+  //           approval_3: true,
+  //         },
+  //       },
+  //     },
+  //   });
+
+  //   const formattedMenus = menus.map((menu) => {
+  //     const roleMenu = menu.roles[0]; // Ambil data dari role_menu jika ada
+
+  //     return {
+  //       id: menu.id,
+  //       name: menu.name,
+  //       url: menu.url,
+  //       order_number: menu.order_number,
+  //       permissions: {
+  //         access: roleMenu?.access ?? false,
+  //         create: roleMenu?.create ?? false,
+  //         update: roleMenu?.update ?? false,
+  //         delete: roleMenu?.delete ?? false,
+  //         approval: roleMenu?.approval ?? false,
+  //         approval_2: roleMenu?.approval_2 ?? false,
+  //         approval_3: roleMenu?.approval_3 ?? false,
+  //       },
+  //     };
+  //   });
+
+  //   return {
+  //     data: formattedMenus,
+  //   };
+  // }
+
+  static async index(role_id: number) {
     const menus = await prismaClient.menu.findMany({
-      where,
-      orderBy: [
-        {
-          order_number: 'asc',
-        },
-        {
-          id: 'asc',
-        },
-      ],
-      include: {
-        roles: { // Ganti `roleMenu` dengan `roles` sesuai model relasi di Prisma
-          where: { role_id },
-          select: {
-            access: true,
-            create: true,
-            update: true,
-            delete: true,
-            approval: true,
-            approval_2: true,
-            approval_3: true,
-          },
-        },
-      },
+      where: { active: 'Active' },
+      orderBy: { order_number: 'asc' },
     });
 
-    const formattedMenus = menus.map((menu) => {
-      const roleMenu = menu.roles[0]; // Ambil data dari role_menu jika ada
+    const perms = await prismaClient.roleMenu.findMany({
+      where: { role_id: role_id },
+    });
 
+    const permMap = new Map<number, IRoleMenuPerm>();
+    perms.forEach((p) => permMap.set(p.menu_id, p));
+
+    type RawNode = IMenuWithPerm & { menu_id: number | null };
+    const rawNodes: RawNode[] = menus.map((m) => {
+      const p = permMap.get(m.id);
       return {
-        id: menu.id,
-        name: menu.name,
-        url: menu.url,
-        order_number: menu.order_number,
+        id: m.id,
+        key_menu: m.key_menu,
+        name: m.name,
+        url: m.url,
+        order_number: m.order_number,
+        active: m.active,
         permissions: {
-          access: roleMenu?.access ?? false,
-          create: roleMenu?.create ?? false,
-          update: roleMenu?.update ?? false,
-          delete: roleMenu?.delete ?? false,
-          approval: roleMenu?.approval ?? false,
-          approval_2: roleMenu?.approval_2 ?? false,
-          approval_3: roleMenu?.approval_3 ?? false,
+          access: p?.access ?? false,
+          create: p?.create ?? false,
+          update: p?.update ?? false,
+          delete: p?.delete ?? false,
+          approval: p?.approval ?? false,
+          approval_2: p?.approval_2 ?? false,
+          approval_3: p?.approval_3 ?? false,
         },
+        children: [],
+        menu_id: m.menu_id, // parent foreign key
       };
     });
 
+    const nodeMap = new Map<number, RawNode>();
+    rawNodes.forEach((n) => nodeMap.set(n.id, n));
+    const tree: RawNode[] = [];
+
+    rawNodes.forEach((n) => {
+      if (n.menu_id === null) {
+        // top‐level
+        tree.push(n);
+      } else {
+        // attach ke parent
+        const parent = nodeMap.get(n.menu_id);
+        if (parent) {
+          parent.children.push(n);
+        }
+      }
+    });
+
     return {
-      data: formattedMenus,
-    };
+      data: tree,
+    }
   }
 
   static async store(role_id: number, req: IRequestRoleMenu[]) {
